@@ -1,0 +1,4 @@
+github.com/baditaflorin/go-common v0.0.0-20260110171042-8921433476a9 h1:MjpL6KkOPWgkwXbvYjZv54P0OXkOlMXLiw46/wryQDI=
+github.com/baditaflorin/go-common v0.0.0-20260110171042-8921433476a9/go.mod h1:N2rDXombx5egJCFNpcdj71DusTeIt8Oylsb3HPuHh7E=
+golang.org/x/sync v0.10.0 h1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=
+golang.org/x/sync v0.10.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=

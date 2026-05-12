@@ -1,0 +1,35 @@
+# service.yaml - Service metadata for automation and AI context
+id: go_substack_scraper
+name: Substack Publication Scraper
+category: info_extraction
+version: "1.0.0"
+port: 8236
+
+# API Configuration
+api:
+  endpoint: /t/{token}/
+  method: GET
+  params:
+    - name: target
+      type: string
+      required: true
+      description: Substack URL or custom-domain URL backed by Substack
+
+# Health & Monitoring
+health:
+  endpoint: /health
+  expected_status: 200
+
+# Example request for testing
+test:
+  url: /t/default_token/?target=https://yann.substack.com/
+  expected_status: 200
+
+# Deploy path on Docker VM
+deploy:
+  path: /home/ubuntu_vm/pentest/web_analysis/go_substack_scraper
+
+# Dependencies
+requires:
+  - docker
+  - pentest_network

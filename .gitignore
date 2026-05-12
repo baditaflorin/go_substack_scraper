@@ -1,0 +1,5 @@
+.env
+*.log
+go_substack_scraper
+/out/
+.DS_Store
