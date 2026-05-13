@@ -3,20 +3,19 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/baditaflorin/go-common/safehttp"
 	"golang.org/x/sync/errgroup"
 )
 
 const (
-	version      = "1.0.0"
+	version      = "1.0.1"
 	userAgent    = "go_substack_scraper/" + version + " (+https://github.com/baditaflorin/go_substack_scraper)"
 	fetchTimeout = 5 * time.Second
 	totalBudget  = 12 * time.Second
@@ -90,15 +89,18 @@ type PaidTier struct {
 	FounderUSD int `json:"founder_usd,omitempty"`
 }
 
-var httpClient = &http.Client{
-	Timeout: fetchTimeout,
-	CheckRedirect: func(req *http.Request, via []*http.Request) error {
+var httpClient = func() *http.Client {
+	c := safehttp.NewClient()
+	c.Timeout = fetchTimeout
+	c.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		if len(via) >= maxRedirects {
 			return fmt.Errorf("stopped after %d redirects", maxRedirects)
 		}
-		return validateURL(req.URL)
-	},
-}
+		_, err := safehttp.CheckURL(req.Context(), req.URL.String())
+		return err
+	}
+	return c
+}()
 
 func writeJSON(w http.ResponseWriter, status int, resp Response) {
 	resp.Tool = "go_substack_scraper"
@@ -134,7 +136,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, Response{Target: target, Error: "Invalid URL: " + err.Error()})
 		return
 	}
-	if err := validateURL(u); err != nil {
+	if _, err := safehttp.CheckURL(r.Context(), u.String()); err != nil {
 		writeJSON(w, http.StatusBadRequest, Response{Target: target, Error: err.Error()})
 		return
 	}
@@ -236,47 +238,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
-// validateURL enforces the SSRF guard.
-func validateURL(u *url.URL) error {
-	if u.Scheme != "http" && u.Scheme != "https" {
-		return fmt.Errorf("unsupported scheme: %s", u.Scheme)
-	}
-	host := u.Hostname()
-	if host == "" {
-		return errors.New("missing host")
-	}
-	resolver := &net.Resolver{}
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-	ips, err := resolver.LookupIP(ctx, "ip", host)
-	if err != nil {
-		return fmt.Errorf("dns lookup failed: %w", err)
-	}
-	if len(ips) == 0 {
-		return fmt.Errorf("no IPs for host %s", host)
-	}
-	for _, ip := range ips {
-		if isBlockedIP(ip) {
-			return fmt.Errorf("blocked IP %s for host %s", ip, host)
-		}
-	}
-	return nil
-}
 
-func isBlockedIP(ip net.IP) bool {
-	if ip == nil {
-		return true
-	}
-	if ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() ||
-		ip.IsMulticast() || ip.IsUnspecified() || ip.IsPrivate() {
-		return true
-	}
-	cgnat := net.IPNet{IP: net.IPv4(100, 64, 0, 0), Mask: net.CIDRMask(10, 32)}
-	if v4 := ip.To4(); v4 != nil && cgnat.Contains(v4) {
-		return true
-	}
-	return false
-}
 
 func fetch(ctx context.Context, target string) (string, int, error) {
 	body, status, err := fetchBytes(ctx, target)
