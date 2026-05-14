@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	version      = "1.0.1"
+	version      = "1.1.0"
 	userAgent    = "go_substack_scraper/" + version + " (+https://github.com/baditaflorin/go_substack_scraper)"
 	fetchTimeout = 5 * time.Second
 	totalBudget  = 12 * time.Second
