@@ -7,7 +7,7 @@ port: 8236
 
 # API Configuration
 api:
-  endpoint: /t/{token}/
+  endpoint: /?api_key={token}
   method: GET
   params:
     - name: target
