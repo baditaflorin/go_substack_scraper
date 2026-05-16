@@ -1,0 +1,18 @@
+services:
+  app:
+    image: ghcr.io/baditaflorin/go_substack_scraper:latest
+    container_name: go_substack_scraper
+    restart: unless-stopped
+    ports:
+      - "8236:8236"
+    environment:
+      PORT: "8236"
+      GRAPH_COLLECTOR_URL: "http://10.10.10.20:18143"
+      GRAPH_API_KEY: "default_token"
+      GRAPH_ENABLED: "true"
+    networks:
+      - pentest_network
+
+networks:
+  pentest_network:
+    external: true
