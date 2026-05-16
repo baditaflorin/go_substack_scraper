@@ -3,7 +3,7 @@ module github.com/baditaflorin/go_substack_scraper
 go 1.24.0
 
 require (
-	github.com/baditaflorin/go-common v0.14.0
+	github.com/baditaflorin/go-common v0.15.0
 	golang.org/x/sync v0.10.0
 )
 
